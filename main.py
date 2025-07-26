@@ -4,6 +4,9 @@ import re
 import time
 from newspaper import Article
 import trafilatura
+import subprocess
+import os
+from TTS.api import TTS
 
 def get_top_story_ids(limit=5):
     top_ids = requests.get("https://hacker-news.firebaseio.com/v0/topstories.json").json()
@@ -167,9 +170,20 @@ def save_summary_to_file(story, summary, output_dir="."):
     print(f"✅ Summary saved to {filename}")
 
 
+def tts_to_aac(text, output_path="output.aac"):
+    tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=True, gpu=True)
+    wav_path = "temp.wav"
+    tts.tts_to_file(text=text, file_path=wav_path)
+
+    # Convert to AAC
+    subprocess.run(["ffmpeg", "-y", "-i", wav_path, "-c:a", "aac", output_path])
+    os.remove(wav_path)
+    print(f"✅ Spoken audio saved to {output_path}")
+
 if __name__ == "__main__":
-    top_story_ids = get_top_story_ids(limit=5)
+    top_story_ids = get_top_story_ids(limit=1)
     timestamp = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+    filename = f"./hn_summary_{timestamp}.txt"
     for story_id in top_story_ids:
         story = get_story_with_comments(story_id, comment_limit=10)
         if story['comments']:
@@ -178,7 +192,6 @@ if __name__ == "__main__":
             # url = 'https://www.wsj.com/economy/central-banking/federal-reserve-building-renovation-d7d25ddc'
             article_contents = fetch_article_with_fallback(url, story['comments'])
             # article_contents = fetch_article_with_fallback(url, ['https://archive.today/qfh7g'])
-            filename = f"./hn_summary_{timestamp}.txt"
             content = (
                 f"Title: {story['title']}\n"
                 f"URL: {story['url']}\n"
@@ -186,7 +199,7 @@ if __name__ == "__main__":
             )
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(content)
-
+            tts_to_aac(summary, output_path=f"./hn_summary_{timestamp}.aac")
             print(f"✅ Summary saved to {filename}")
         else:
             print(f"No comments found for story ID {story_id}\n")

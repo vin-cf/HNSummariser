@@ -6,7 +6,8 @@ requires-python = ">=3.11"
 dependencies = [
     "newspaper3k",
     "requests",
-    "trafilatura"
+    "trafilatura",
+    "TTS", # Text-to-Speech library
 ]
 
 [build-system]
