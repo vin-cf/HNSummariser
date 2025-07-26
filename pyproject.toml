@@ -1,0 +1,14 @@
+[project]
+name = "HNSummariser"
+version = "0.0.1"
+description = "Summarizes Hacker News articles and comments for podcasting"
+requires-python = ">=3.11"
+dependencies = [
+    "newspaper3k",
+    "requests",
+    "trafilatura"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
